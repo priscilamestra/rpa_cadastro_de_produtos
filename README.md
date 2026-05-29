@@ -1,46 +1,164 @@
-## Automação RPA de Cadastro ERP com Servidor Integrado
+## RPA — Cadastro de Produtos
 
-Este projeto é uma automação de Processos Robóticos (RPA) desenvolvida em Python para simular o fluxo de trabalho em um sistema ERP. O diferencial desta solução é a capacidade de gerenciar seu próprio ambiente de execução, iniciando e finalizando o servidor web automaticamente.
-![Tela de login do sistema ERP](img/login_sistema.png)
-![Tela do formulário do sistema ERP](img/formulario_cadastro_produtos.png)
-![Automação preenchendo os dados no formulário de cadastro de produtos](img/rpa_cadastro_no_sistema.gif)
+Robô de automação de interface que elimina o trabalho manual de *data entry* em sistemas ERP legados.  
+Lê uma planilha `.csv`, abre o navegador, faz login e cadastra cada produto automaticamente — campo por campo.
 
-## Requisitos de Sistema
-- **Sistema Operacional:** Desenvolvido e testado exclusivamente para **Windows**. 
-- **Motivo:** A automação utiliza atalhos de teclado (`Win + R`, `Ctrl + L`) e comandos de terminal (`python -m http.server`) específicos do ambiente Windows para garantir a execução fluida. Para usar em outros sistemas, mude os atalhos no próprio script.
+#![RPA em ação](img/rpa_cadastro_no_sistema.gif)
 
-## Diferenciais do Projeto
+---
 
-- **Servidor Auto-Gerenciado:** O script utiliza a biblioteca `subprocess` para iniciar um servidor HTTP local na porta 8000, eliminando a necessidade de configuração manual do ambiente de teste.
+### Problema que resolve
 
-![Terminal iniciando o servidor HTTP local automaticamente](img/servidor_iniciando_terminal.png)
-- **Arquitetura Resiliente (Try/Finally):** Implementação de blocos de tratamento que garantem o encerramento seguro de processos e a liberação de portas de rede, mesmo em caso de erro crítico na automação.
-- **Navegação Dinâmica:** O robô utiliza atalhos de sistema (`Ctrl + L`, `TAB`) em vez de coordenadas fixas, garantindo compatibilidade com diferentes resoluções de monitor.
+Sistemas corporativos antigos frequentemente não possuem API ou importação em massa.  
+Isso obriga funcionários a horas de "copiar e colar" para cadastrar produtos — lento, caro e sujeito a erro humano.
 
-## Tecnologias Utilizadas
+---
 
-- **Python 3.14**
-- **PyAutoGUI:** Automação de interface (teclado e mouse).
-- **Pandas:** Manipulação da base de dados (CSV).
-- **Subprocess & OS:** Gerenciamento de infraestrutura e caminhos de sistema.
-- **HTML/CSS:** Sistema ERP para testes.
+### Como funciona
 
-## Como Executar
+1. Usuário deposita o `.csv` na pasta `Entrada/`
+2. Executa o robô (`rpa-cadastro-de-produtos.exe`)
+3. O robô abre o Chrome, faz login e cadastra todos os produtos automaticamente
+4. Ao finalizar, move o `.csv` para `Processados/` — evitando duplicidade
 
-### 1. Clonar o Repositório
-```bash
-git clone [https://github.com/seu-usuario/rpa_cadastro_no_sistema.git](https://github.com/seu-usuario/rpa_cadastro_no_sistema.git)
-cd rpa_cadastro_no_sistema
+---
 
-## ⚙️ Personalização (Coordenadas Fixas)
+### Interface
 
-Caso você prefira utilizar coordenadas específicas para cliques na sua tela em vez da navegação por atalhos (`Ctrl + L`), o projeto inclui um script auxiliar de reserva:
+````
+╭─────────────────────────────────────╮
+│    Menu Principal                   │
+│                                     │
+│  RPA — Cadastro de Produtos         │
+│                                     │
+│   [1] Iniciar Cadastro              │
+│   [2] Configurar Credenciais        │
+│   [3] Sair                          │
+╰─────────────────────────────────────╯
+Escolha uma opção:
+````
 
-### Script `posicao.py`
-Este script serve para identificar as coordenadas exatas (X e Y) de qualquer campo ou da barra de URL no seu monitor.
+---
 
-**Como usar:**
-1. Execute o script: `python posicao.py`
-2. Posicione o mouse sobre o campo desejado (ex: barra de endereços ou campo de login).
-3. Aguarde o tempo configurado (geralmente 5 segundos) e o script imprimirá as coordenadas no terminal.
-4. Substitua os comandos de `hotkey` ou `press` relacionados a clicar nos campos no `main.py` por `pyautogui.click(x=VALOR, y=VALOR)` usando os números obtidos.
+### Estrutura de entrega ao cliente
+
+````
+dist/
+├── rpa-cadastro-de-produtos.exe   ← executável, clique duplo para iniciar
+├── Entrada/                       ← deposite o .csv aqui antes de rodar
+└── Processados/                   ← o robô move o .csv para cá após concluir
+````
+
+---
+
+### Formato do CSV esperado
+
+O arquivo `.csv` deve conter as seguintes colunas, nesta ordem:
+
+| codigo | marca | tipo | categoria | preco_unitario | custo | obs |
+|--------|-------|------|-----------|----------------|-------|-----|
+| 001 | Marca X | Eletrônico | Informática | 299.90 | 180.00 | |
+| 002 | Marca Y | Periférico | Acessórios | 89.90 | 45.00 | Frágil |
+
+> A coluna `obs` é opcional — pode ficar vazia.
+
+---
+
+### Configuração (primeira execução)
+
+Na primeira vez que o `.exe` rodar, o sistema pede automaticamente:
+
+````
+   Setup de Credenciais
+   E-mail: usuario@empresa.com
+   Senha:  ********
+   URL do sistema (ex: http://erp.empresa.com):
+   Credenciais salvas em config.json
+````
+
+As credenciais ficam salvas localmente em `config.json`.  
+Para reconfigurar, basta escolher a opção `[2] Configurar Credenciais` no menu.
+
+---
+
+### Stack técnica
+
+| Tecnologia | Função |
+|---|---|
+| `Python 3.x` | Linguagem base |
+| `pyautogui` | Automação de teclado e mouse |
+| `pandas` | Leitura e manipulação do CSV |
+| `rich` | Interface de terminal com barra de progresso |
+| `PyInstaller` | Empacotamento em `.exe` autossuficiente |
+| `uv` | Gerenciamento de dependências |
+
+---
+
+### Arquitetura do código
+
+````
+rpa-cadastro-de-produtos/
+│
+├── main.py        → menu CLI, orquestra o fluxo
+├── config.py      → leitura e escrita de credenciais (config.json)
+├── automacao.py   → toda a interação com o navegador e o ERP
+│
+├── Entrada/       → input: CSVs aguardando processamento
+└── Processados/   → output: CSVs já processados
+````
+
+Cada módulo tem responsabilidade única — manutenção cirúrgica, sem efeitos colaterais.
+
+---
+
+### Adaptação para outros sistemas
+
+Para adaptar o robô a um ERP diferente, apenas um trecho precisa ser alterado:
+
+**`automacao.py` → função `_preencher_linha()`**
+
+```python
+# Ajuste a lista de campos para bater com a ordem dos campos na tela do novo sistema
+campos = ['codigo', 'marca', 'tipo', 'categoria', 'preco_unitario', 'custo']
+```
+
+`main.py` e `config.py` não precisam ser tocados.
+
+---
+
+### Rodando em desenvolvimento
+
+```powershell
+# Instala as dependências
+uv sync
+
+# Roda sem compilar o .exe
+uv run python main.py
+```
+
+---
+
+### Gerando o executável
+
+```powershell
+uv run pyinstaller --onefile --console --name "rpa-cadastro-de-produtos" main.py
+
+# Após gerar, cria as pastas de entrega
+mkdir dist/Entrada
+mkdir dist/Processados
+```
+
+---
+
+### Requisitos da máquina do cliente
+
+- Windows 10 ou superior
+- Google Chrome instalado
+- Nenhuma instalação de Python necessária — o `.exe` é autossuficiente
+
+---
+
+### Licença
+
+MIT
+````

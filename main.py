@@ -1,10 +1,11 @@
 # main.py
+
 import os
 import glob
 import sys
 from rich.console import Console
 from rich.panel import Panel
-from config import config_existe, carregar_config, setup_interativo
+from config import config_existe, carregar_config, setup_interativo, verificar_acesso
 from automacao import executar_cadastro, carregar_progresso, limpar_progresso
 
 console = Console()
@@ -45,6 +46,11 @@ def menu():
 
 def _iniciar_cadastro():
     """Orquestra o fluxo completo, incluindo retomada de progresso interrompido."""
+    # Senha pedida aqui: protege a automação, não o menu inteiro
+    if not verificar_acesso():
+        console.print("[bold red]Acesso negado. Voltando ao menu.[/bold red]")
+        return  # volta pro menu, não encerra o programa
+
     if not config_existe():
         console.print("[yellow]Nenhuma credencial encontrada. Vamos configurar agora.[/yellow]")
         setup_interativo()

@@ -3,6 +3,8 @@ import pandas as pd
 import pyautogui
 import shutil
 import os
+import subprocess
+import winreg
 import sys
 import json
 from datetime import datetime
@@ -41,8 +43,28 @@ def limpar_progresso():
     if os.path.exists(PROGRESSO_PATH):
         os.remove(PROGRESSO_PATH)
 
+def _obter_caminho_chrome() -> str:
+    """Busca o caminho real do chrome.exe no registro do Windows.
+    Garante que --start-maximized funcione independente de como o Chrome foi instalado."""
+    try:
+        key = winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE,
+            r'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
+        )
+        path = winreg.QueryValue(key, None)
+        winreg.CloseKey(key)
+        return path
+    except Exception:
+        fallbacks = [
+            r'C:\Program Files\Google\Chrome\Application\chrome.exe',
+            r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
+        ]
+        for path in fallbacks:
+            if os.path.exists(path):
+                return path
+        return 'chrome'  # fallback genérico — espera que esteja no PATH do sistema
 
-def executar_cadastro(config: dict, caminho_csv: str, linha_inicio: int = 0):
+def executar_cadastro(config: dict, caminho_csv: str, linha_inicio: int = 0):   
     """
     Função principal da automação.
     linha_inicio → permite retomar de onde parou (default 0 = começo)
@@ -63,16 +85,20 @@ def executar_cadastro(config: dict, caminho_csv: str, linha_inicio: int = 0):
     pyautogui.FAILSAFE = True
 
     # ---------- ABERTURA DO NAVEGADOR ----------
-    pyautogui.hotkey('win', 'r')
-    pyautogui.write('chrome --incognito --start-maximized')
-    pyautogui.press('enter')
-    sleep(2)
-
-    pyautogui.hotkey('ctrl', 'l')
-    sleep(1)
-    pyautogui.write(config["url"])
-    pyautogui.press('enter')
+    chrome = _obter_caminho_chrome()
+    # --new-window: força nova janela mesmo se Chrome já estiver aberto
+    # garante que --start-maximized seja respeitado (Chrome ignora a flag se já estiver rodando)
+    # sem shell=True: funciona igual em CMD e PowerShell (resolve o bug do 0.0.0.2)
+    subprocess.Popen([
+        chrome,
+        '--incognito',
+        '--new-window',
+        '--start-maximized',
+        config["url"]
+    ])
     sleep(3)
+    pyautogui.hotkey('win', 'up')  # segunda garantia: maximiza a janela ativa
+    sleep(1)
 
     # ---------- LOGIN ----------
     pyautogui.press('tab')

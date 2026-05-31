@@ -3,8 +3,6 @@
 Ferramenta de automação de interface que elimina o trabalho manual de cadastro em sistemas ERP legados.
 Lê uma planilha `.csv`, abre o navegador, realiza o login e preenche os campos automaticamente — sem API, sem integração, zero intervenção humana.
 
-
-
 ---
 
 ## O problema que resolve
@@ -22,6 +20,10 @@ Sistemas corporativos antigos frequentemente não oferecem importação em massa
 
 ---
 ## Demonstração
+
+![Tela de login do sistema](img/login_sistema.png)
+
+![Formulario de cadastro de produtos](img/formulario_cadastro_produtos.png)
 
 #![RPA em ação](img/rpa_cadastro_no_sistema.gif)
 

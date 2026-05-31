@@ -3,29 +3,32 @@
 Ferramenta de automação de interface que elimina o trabalho manual de cadastro em sistemas ERP legados.
 Lê uma planilha `.csv`, abre o navegador, realiza o login e preenche os campos automaticamente — sem API, sem integração, zero intervenção humana.
 
----
 
-## O problema que resolve
+
+### O problema que resolve
  
 Sistemas corporativos antigos frequentemente não oferecem importação em massa nem integração via API. Isso obriga funcionários a passarem horas cadastrando produtos manualmente, gerando alto custo operacional e risco constante de erro humano.
 
----
 
-## Como funciona
+
+### Como funciona
  
 1. O usuário deposita o arquivo `.csv` na pasta `Entrada/`
 2. Executa o robô clicando duas vezes em `INICIAR.bat`
 3. O robô abre o Chrome, faz login e preenche todos os campos automaticamente
 4. Ao finalizar, o arquivo `.csv` é movido para `Processados/` — impedindo reprocessamento acidental
 
----
-## Demonstração
+### Demonstração
 
+Login do sistema:
 ![Tela de login do sistema](img/login_sistema.png)
 
+Painel de cadastro de produtos:
 ![Formulario de cadastro de produtos](img/formulario_cadastro_produtos.png)
 
-#![RPA em ação](img/rpa_cadastro_no_sistema.gif)
+GIF da automação rodando:
+![RPA em ação](img/rpa_cadastro_no_sistema.gif)
+
 
 ### Estrutura de entrega ao cliente
 
@@ -41,9 +44,8 @@ dist/
 
 O executável é autossuficiente. Nenhuma instalação de Python ou dependências é necessária na máquina do cliente.
 
----
 
-## Configuracao inicial (primeira execucao)
+### Configuracao inicial (primeira execucao)
  
 Na primeira execução, o sistema detecta que não há configuração salva e abre o setup automaticamente:
  
@@ -60,9 +62,9 @@ Credenciais salvas em config.json
 As credenciais ficam salvas localmente em `config.json`, ao lado do executável.
 Para reconfigurar, use a opção `[2]` do menu principal.
  
----
 
-## Menu principal
+
+### Menu principal
  
 ```
 +---------------------------------------+
@@ -78,7 +80,7 @@ Para reconfigurar, use a opção `[2]` do menu principal.
 Escolha uma opcao:
 ```
  
-### Opcao 1 — Iniciar Cadastro
+#### Opcao 1 — Iniciar Cadastro
  
 Inicia o processo de automação. Se uma senha de acesso estiver configurada, ela será solicitada antes de prosseguir.
  
@@ -95,11 +97,11 @@ O sistema busca todos os arquivos `.csv` dentro da pasta `Entrada/` e os process
   Cadastrando produtos... ████████░░░░  60%
 ```
  
-### Opcao 2 — Configurar Credenciais
+#### Opcao 2 — Configurar Credenciais
  
 Permite alterar e-mail, senha e URL do sistema a qualquer momento, sem precisar recriar o arquivo de configuração.
  
-### Opcao 3 — Gerenciar Senha de Acesso
+#### Opcao 3 — Gerenciar Senha de Acesso
  
 Controla o acesso à automação:
  
@@ -107,12 +109,12 @@ Controla o acesso à automação:
 - **Com senha configurada:** solicita a senha atual antes de permitir troca ou remoção
 A senha é armazenada como hash SHA-256 — nunca em texto puro.
  
-### Opcao 4 — Sair
+#### Opcao 4 — Sair
  
 Encerra o programa normalmente.
  
----
-## Formato do arquivo CSV
+
+### Formato do arquivo CSV
  
 O arquivo `.csv` deve conter as seguintes colunas, nesta ordem:
  
@@ -123,17 +125,17 @@ O arquivo `.csv` deve conter as seguintes colunas, nesta ordem:
  
 A coluna `obs` e opcional. Células vazias são ignoradas automaticamente.
  
----
 
-## Como parar a automação
+
+### Como parar a automação
  
 Feche a janela do terminal (CMD) durante a execução. O processo é encerrado imediatamente.
  
 O arquivo `.csv` permanece na pasta `Entrada/` e o progresso até o momento é salvo automaticamente. Nenhum produto será reprocessado na próxima execução.
  
----
 
-## Recurso de retomada automatica
+
+### Recurso de retomada automatica
  
 Se a execução for interrompida no meio do processamento — seja por fechamento do terminal, erro de rede ou qualquer outro motivo — o sistema detecta o ponto de parada na próxima execução e oferece opções de continuidade:
  
@@ -152,9 +154,9 @@ Execucao anterior interrompida!
  
 Ao escolher `[1]`, o robô pula os 23 produtos já cadastrados e retoma a partir do produto 24, eliminando o risco de duplicidade.
  
----
+
  
-## Recuperação de acesso
+### Recuperação de acesso
  
 Caso o operador esqueça a senha de acesso configurada na opção `[3]`, o procedimento de recuperação é:
  
@@ -163,9 +165,9 @@ Caso o operador esqueça a senha de acesso configurada na opção `[3]`, o proce
 3. Executar o robô novamente — o setup será reiniciado do zero
 **Atenção:** a exclusão do `config.json` apaga também as credenciais do sistema (e-mail, senha, URL). Elas precisarão ser reconfiguradas.
  
----
+
  
-## Adaptando para outro sistema
+### Adaptando para outro sistema
  
 Para utilizar o robô em um ERP diferente, apenas um trecho precisa ser alterado:
  
@@ -178,22 +180,22 @@ campos = ['codigo', 'marca', 'tipo', 'categoria', 'preco_unitario', 'custo']
  
 Os arquivos `main.py` e `config.py` não precisam ser tocados.
  
----
+
  
-## Stack tecnica
+### Stack tecnica
  
 | Tecnologia | Funcao |
 |---|---|
-| Python 3.x | Linguagem base |
+| Python 3.14 | Linguagem base |
 | pyautogui | Automacao de teclado e mouse |
 | pandas | Leitura e manipulacao do CSV |
 | rich | Interface de terminal com barra de progresso |
 | PyInstaller | Empacotamento em .exe autossuficiente |
 | uv | Gerenciamento de dependencias |
  
----
+
  
-## Arquitetura do projeto
+### Arquitetura do projeto
  
 **Codigo-fonte (repositorio):**
  
@@ -225,9 +227,9 @@ dist/
 +-- config.json                   -> gerado automaticamente na primeira execucao
 ```
  
----
+
  
-## Rodando em desenvolvimento
+### Rodando em desenvolvimento
  
 ```powershell
 # Instala as dependencias
@@ -237,7 +239,7 @@ uv sync
 uv run python src/main.py
 ```
  
-## Gerando o executavel
+### Gerando o executavel
  
 ```powershell
 uv run pyinstaller --onefile --console --name "rpa-cadastro-de-produtos" src/main.py
@@ -247,15 +249,15 @@ mkdir dist\Entrada
 mkdir dist\Processados
 ```
  
----
+
  
-## Requisitos da maquina do cliente
+### Requisitos da maquina do cliente
  
 - Windows 10 ou superior
 - Google Chrome instalado
 - Nenhuma instalacao de Python ou bibliotecas adicionais
----
+
  
-## Licenca
+### Licenca
  
 MIT

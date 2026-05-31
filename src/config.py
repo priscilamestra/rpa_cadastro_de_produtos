@@ -8,7 +8,7 @@ import hashlib
 if getattr(sys, 'frozen', False):
     BASE_DIR = os.path.dirname(sys.executable)
 else:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
 
@@ -68,23 +68,24 @@ def verificar_acesso() -> bool:
 
     return False  # bloqueado após 3 tentativas
 
+def verificar_senha_atual(senha: str) -> bool:
+    """Compara a senha digitada com o hash armazenado."""
+    config = carregar_config()
+    return hashlib.sha256(senha.encode()).hexdigest() == config.get("senha_acesso", "")
+
+
+def remover_senha_acesso():
+    """Remove a senha de acesso do config.json, deixando o sistema sem proteção."""
+    dados = carregar_config() if config_existe() else {}
+    dados.pop("senha_acesso", None)
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(dados, f, indent=2)
 
 def setup_interativo():
-    """
-    Coleta credenciais e senha de acesso.
-    Bug corrigido: .lower() removido de senha e url (ambas são case-sensitive).
-    """
-    print("\n🔧  Setup de Credenciais")
+    """Coleta e salva credenciais do sistema. Senha de acesso é gerenciada pelo menu."""
+    print("\nSetup de Credenciais")
     email = input("   E-mail: ").strip()
     senha = input("   Senha:  ").strip()
     url   = input("   URL do sistema (ex: http://erp.empresa.com): ").strip()
     salvar_config(email, senha, url)
     print("✅  Credenciais salvas em config.json\n")
-
-    print("🔒  Proteção de acesso")
-    senha_acesso = input("   Defina uma senha para proteger o sistema (Enter para pular): ").strip()
-    if senha_acesso:
-        definir_senha_acesso(senha_acesso)
-        print("✅  Senha de acesso configurada.\n")
-    else:
-        print("⚠️   Sem senha definida — qualquer pessoa poderá rodar o sistema.\n")

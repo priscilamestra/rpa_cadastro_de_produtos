@@ -12,7 +12,7 @@ from time import sleep
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
 from rich.console import Console
 
-BASE_DIR = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PASTA_PROCESSADOS = os.path.join(BASE_DIR, "Processados")
 PROGRESSO_PATH    = os.path.join(BASE_DIR, "Processados", "progresso.json")
 

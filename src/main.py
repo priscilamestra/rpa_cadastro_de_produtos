@@ -5,12 +5,14 @@ import glob
 import sys
 from rich.console import Console
 from rich.panel import Panel
-from config import config_existe, carregar_config, setup_interativo, verificar_acesso
-from automacao import executar_cadastro, carregar_progresso, limpar_progresso
+from config import (config_existe, carregar_config, setup_interativo,
+                    verificar_acesso, verificar_senha_atual,
+                    definir_senha_acesso, remover_senha_acesso)
+from bot import executar_cadastro, carregar_progresso, limpar_progresso
 
 console = Console()
 
-BASE_DIR = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PASTA_ENTRADA = os.path.join(BASE_DIR, "Entrada")
 
 
@@ -27,7 +29,8 @@ def menu():
             "[bold cyan]RPA — Cadastro de Produtos[/bold cyan]\n\n"
             " [1] Iniciar Cadastro\n"
             " [2] Configurar Credenciais\n"
-            " [3] Sair",
+            " [3] Gerenciar Senha de Acesso\n"
+            " [4] Sair",
             title="Menu Principal"
         ))
 
@@ -38,11 +41,47 @@ def menu():
         elif opcao == "2":
             setup_interativo()
         elif opcao == "3":
+            _gerenciar_senha()
+        elif opcao == "4":
             console.print("[yellow]Até logo![/yellow]")
             break
         else:
             console.print("[red]Opção inválida. Tente novamente.[/red]")
 
+def _gerenciar_senha():
+    """Gerencia senha de acesso: criar, trocar ou remover.
+    Única porta de entrada para mudanças de senha — setup não pergunta mais."""
+    config = carregar_config() if config_existe() else {}
+    tem_senha = bool(config.get("senha_acesso"))
+
+    if not tem_senha:
+        # Sem senha configurada — oferece criar
+        console.print("\n[yellow]Nenhuma senha de acesso configurada.[/yellow]")
+        nova = input("Defina uma senha (Enter para cancelar): ").strip()
+        if nova:
+            definir_senha_acesso(nova)
+            console.print("[green]✅ Senha configurada com sucesso.[/green]\n")
+        return
+
+    # Tem senha — valida antes de qualquer mudança
+    atual = input("\n🔐 Digite a senha atual para continuar: ").strip()
+    if not verificar_senha_atual(atual):
+        console.print("[red]Senha incorreta. Operação cancelada.[/red]\n")
+        return
+
+    console.print("\n [1] Trocar senha")
+    console.print(" [2] Remover senha")
+    console.print(" [3] Cancelar\n")
+    escolha = input("Escolha: ").strip()
+
+    if escolha == "1":
+        nova = input("Nova senha: ").strip()
+        if nova:
+            definir_senha_acesso(nova)
+            console.print("[green]✅ Senha alterada com sucesso.[/green]\n")
+    elif escolha == "2":
+        remover_senha_acesso()
+        console.print("[green]✅ Senha removida. Sistema sem proteção de acesso.[/green]\n")
 
 def _iniciar_cadastro():
     """Orquestra o fluxo completo, incluindo retomada de progresso interrompido."""
